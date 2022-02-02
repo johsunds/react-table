@@ -39,7 +39,7 @@ const getHeaderProps = (props, { column }) => [
         ? `${column.totalFlexWidth} 0 auto`
         : undefined,
       minWidth: `${column.totalMinWidth}px`,
-      width: `${column.totalWidth}px`,
+      width: `${column.totalFlexWidth}px`,
     },
   },
 ]
@@ -51,7 +51,7 @@ const getCellProps = (props, { cell }) => [
       boxSizing: 'border-box',
       flex: `${cell.column.totalFlexWidth} 0 auto`,
       minWidth: `${cell.column.totalMinWidth}px`,
-      width: `${cell.column.totalWidth}px`,
+      width: `${cell.column.totalFlexWidth}px`,
     },
   },
 ]
@@ -65,7 +65,7 @@ const getFooterProps = (props, { column }) => [
         ? `${column.totalFlexWidth} 0 auto`
         : undefined,
       minWidth: `${column.totalMinWidth}px`,
-      width: `${column.totalWidth}px`,
+      width: `${column.totalFlexWidth}px`,
     },
   },
 ]

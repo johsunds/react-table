@@ -111,9 +111,9 @@ function Table({ columns, data }) {
   const defaultColumn = React.useMemo(
     () => ({
       // When using the useFlexLayout:
-      minWidth: 30, // minWidth is only used as a limit for resizing
+      minWidth: 50, // minWidth is only used as a limit for resizing
       width: 150, // width is used for both the flex-basis and flex-grow
-      maxWidth: 200, // maxWidth is only used as a limit for resizing
+      maxWidth: 600, // maxWidth is only used as a limit for resizing
     }),
     []
   )
@@ -126,39 +126,7 @@ function Table({ columns, data }) {
     },
     useResizeColumns,
     useFlexLayout,
-    useRowSelect,
-    hooks => {
-      hooks.allColumns.push(columns => [
-        // Let's make a column for selection
-        {
-          id: 'selection',
-          disableResizing: true,
-          minWidth: 35,
-          width: 35,
-          maxWidth: 35,
-          // The header can use the table's getToggleAllRowsSelectedProps method
-          // to render a checkbox
-          Header: ({ getToggleAllRowsSelectedProps }) => (
-            <div>
-              <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} />
-            </div>
-          ),
-          // The cell can use the individual row's getToggleRowSelectedProps method
-          // to the render a checkbox
-          Cell: ({ row }) => (
-            <div>
-              <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />
-            </div>
-          ),
-        },
-        ...columns,
-      ])
-      hooks.useInstanceBeforeDimensions.push(({ headerGroups }) => {
-        // fix the parent group of the selection button to not be resizable
-        const selectionGroupHeader = headerGroups[0].headers[0]
-        selectionGroupHeader.canResize = false
-      })
-    }
+    useRowSelect
   )
 
   return (
@@ -212,42 +180,32 @@ function App() {
   const columns = React.useMemo(
     () => [
       {
-        Header: 'Name',
-        columns: [
-          {
-            Header: 'First Name',
-            accessor: 'firstName',
-          },
-          {
-            Header: 'Last Name',
-            accessor: 'lastName',
-          },
-        ],
+        Header: 'First Name',
+        accessor: 'firstName',
       },
       {
-        Header: 'Info',
-        columns: [
-          {
-            Header: 'Age',
-            accessor: 'age',
-            width: 50,
-            align: 'right',
-          },
-          {
-            Header: 'Visits',
-            accessor: 'visits',
-            width: 50,
-            align: 'right',
-          },
-          {
-            Header: 'Status',
-            accessor: 'status',
-          },
-          {
-            Header: 'Profile Progress',
-            accessor: 'progress',
-          },
-        ],
+        Header: 'Last Name',
+        accessor: 'lastName',
+      },
+      {
+        Header: 'Age',
+        accessor: 'age',
+        width: 50,
+        align: 'right',
+      },
+      {
+        Header: 'Visits',
+        accessor: 'visits',
+        width: 50,
+        align: 'right',
+      },
+      {
+        Header: 'Status',
+        accessor: 'status',
+      },
+      {
+        Header: 'Profile Progress',
+        accessor: 'progress',
       },
     ],
     []

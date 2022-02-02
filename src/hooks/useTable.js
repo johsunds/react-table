@@ -482,7 +482,7 @@ function calculateHeaderWidths(headers, left = 0) {
         header.maxWidth
       )
       header.totalMaxWidth = header.maxWidth
-      header.totalFlexWidth = header.canResize ? header.totalWidth : 0
+      header.totalFlexWidth = header.canResize ? header.width : 0
     }
     if (header.isVisible) {
       left += header.totalWidth

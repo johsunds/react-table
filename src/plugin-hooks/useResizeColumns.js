@@ -45,6 +45,9 @@ const defaultGetResizerProps = (props, { instance, header }) => {
       isTouchEvent = true
     }
     const headersToResize = getLeafHeaders(header)
+    const leftHeaderIndex = instance.headers.findIndex(h => h.id === header.id)
+    const leftHeader = instance.headers[leftHeaderIndex]
+    const rightHeader = instance.headers[leftHeaderIndex + 1]
     const headerIdWidths = headersToResize.map(d => [d.id, d.totalWidth])
 
     const clientX = isTouchEvent ? Math.round(e.touches[0].clientX) : e.clientX
@@ -118,6 +121,11 @@ const defaultGetResizerProps = (props, { instance, header }) => {
       columnId: header.id,
       columnWidth: header.totalWidth,
       headerIdWidths,
+      leftHeader,
+      rightHeader,
+      widthUnitPerPx:
+        instance.totalColumnsWidth / instance.tableRef.current.clientWidth,
+      headers: instance.headers,
       clientX,
     })
   }
@@ -158,7 +166,27 @@ function reducer(state, action) {
   }
 
   if (action.type === actions.columnStartResizing) {
-    const { clientX, columnId, columnWidth, headerIdWidths } = action
+    const {
+      clientX,
+      columnId,
+      columnWidth,
+      headerIdWidths,
+      leftHeader,
+      rightHeader,
+      widthUnitPerPx,
+      headers,
+    } = action
+
+    const maxChangePx = [
+      Math.max(
+        leftHeader.totalMinWidth - leftHeader.totalWidth / widthUnitPerPx,
+        rightHeader.totalWidth / widthUnitPerPx - rightHeader.totalMaxWidth
+      ),
+      Math.min(
+        rightHeader.totalWidth / widthUnitPerPx - rightHeader.totalMinWidth,
+        leftHeader.totalMaxWidth - leftHeader.totalWidth / widthUnitPerPx
+      ),
+    ]
 
     return {
       ...state,
@@ -166,7 +194,13 @@ function reducer(state, action) {
         ...state.columnResizing,
         startX: clientX,
         headerIdWidths,
-        columnWidth,
+        leftHeader,
+        rightHeader,
+        headers,
+        widthUnitPerPx,
+        maxChangePx,
+        leftHeaderInitialWidth: columnWidth,
+        rightHeaderInitialWidth: rightHeader.totalWidth,
         isResizingColumn: columnId,
       },
     }
@@ -174,19 +208,33 @@ function reducer(state, action) {
 
   if (action.type === actions.columnResizing) {
     const { clientX } = action
-    const { startX, columnWidth, headerIdWidths = [] } = state.columnResizing
+    const {
+      startX,
+      leftHeaderInitialWidth,
+      rightHeaderInitialWidth,
+      widthUnitPerPx,
+      maxChangePx,
+      leftHeader,
+      rightHeader,
+    } = state.columnResizing
 
-    const deltaX = clientX - startX
-    const percentageDeltaX = deltaX / columnWidth
+    const deltaX = Math.max(
+      Math.min(clientX - startX, maxChangePx[1]),
+      maxChangePx[0]
+    )
+    const deltaWidthUnit = deltaX * widthUnitPerPx
+    const percentageDeltaWidthUnit = deltaWidthUnit / leftHeaderInitialWidth
+    const widthChange = leftHeaderInitialWidth * percentageDeltaWidthUnit
 
     const newColumnWidths = {}
-
-    headerIdWidths.forEach(([headerId, headerWidth]) => {
-      newColumnWidths[headerId] = Math.max(
-        headerWidth + headerWidth * percentageDeltaX,
-        0
-      )
-    })
+    newColumnWidths[leftHeader.id] = Math.max(
+      leftHeaderInitialWidth + widthChange,
+      0
+    )
+    newColumnWidths[rightHeader.id] = Math.max(
+      rightHeaderInitialWidth - widthChange,
+      0
+    )
 
     return {
       ...state,
@@ -262,8 +310,14 @@ function useInstance(instance) {
     [dispatch]
   )
 
+  const tableRef = React.useRef()
+  instance.getHooks().getTableProps.push({
+    ref: tableRef,
+  })
+
   Object.assign(instance, {
     resetResizing,
+    tableRef,
   })
 }
 
